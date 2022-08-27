@@ -1,0 +1,24 @@
+# What is the data source?
+## where do i get it? 
+## who can i reach to get the data from
+## How dirty is the data? 
+### identify missing values
+### identify any outliers
+### check for overall plausibility and errors (e.g, typos)
+### identify highly correlated variables
+### identify variables with (nearly) no variance
+### identify variables with strange names or values
+### check variable classes (eg. characters vs factors)
+### remove/transform some variables (maybe your model does not like categorial variables)
+### rename some variables or values (especially interesting if large number)
+### check some overall pattern (statistical/ numerical summaries)
+### center/scale variables
+
+# What is the file structure? 
+## does it need to be reorganized? 
+## what modifications need to be made? 
+
+# How many files/sheets does the whole data set have?
+## How are the columns related? 
+## what are the common key? 
+## 
