@@ -1,0 +1,207 @@
+# Share QR with Wifi
+
+# Wifi QrCode
+
+pip install wifi_qrcode_generator
+
+import wifi_qrcode_generator as wifi
+ 
+# Generate Wifi QR code
+qrcode = wifi.generate_qrcode("Wifi Name", False, "WPA", "Password")
+# Save QR code
+qrcode.save("Wifi.png")
+
+---------------------------------------------------------------------------------
+
+# Grammer and Spell Fixer
+
+pip install gingerit
+
+import gingerit.gingerit as ginger
+
+Text = """This is an example of a sentence that is not 
+grammerly correct. A spell checker can't fix this."""
+Grammer = ginger.GingerIt()
+result = Grammer.parse(Text)
+# Original
+print(result['text'])
+# Grammerly Corrected
+print(result['result'])
+
+--------------------------------------------------------------------------------
+
+# Extract Webpages
+
+pip install urllib3
+
+from urllib.request import Request, urlopen
+url = "https://www.medium.com/"
+headers = { 'User-Agent' : 'Mozilla/5.0' }
+req = Request(url, headers=headers)
+webpage = urlopen(req).read()
+print(webpage)
+
+-------------------------------------------------------------------------------
+
+# Parse Webpages
+
+pip install bs4
+
+from bs4 import BeautifulSoup
+
+# Parse HTML
+soup = BeautifulSoup(webpage, 'html.parser')
+
+# find element
+html = soup.find('title')
+
+# find multiple element
+html = soup.find_all('title')
+
+# find element by class
+html = soup.find('title', class_='title')
+
+# find element by xpath
+html = soup.find('title', attrs={'id':'title'})
+
+# Extract Text
+html = soup.find('title').text
+
+# Extract URL 
+html = soup.find('title')["href"]
+
+# Extract Attribute
+html = soup.find('title').get("class")
+
+--------------------------------------------------------------------------------
+
+# Images to Text
+
+pip install pytesseract
+pip install Pillow
+
+import pytesseract as tess
+from PIL import Image, ImageFilter, ImageEnhance
+def Image_to_Text(img_file):
+    img = Image.open(img_file)
+    img = img.filter(ImageFilter.MedianFilter())
+    enh = ImageEnhance.Contrast(img)
+    img = enh.enhance(2)
+    img = img.convert('1')
+    img.save('tmp.png')
+    text = tess.image_to_string(Image.open('tmp.png'))
+    return text
+    
+Image_to_Text('test.png')
+
+.-------------------------------------------------------------------------------
+
+# Generate Secure Passwords
+import random
+import string
+def generate_password(length):
+    """Generate a random password of length 'length'."""
+    password = ''
+    for i in range(length):
+        password += random.choice(string.ascii_letters + string.digits)
+    return password
+    
+generate_password(10)
+
+---------------------------------------------------------------------------------
+
+# Take Web Screenshots
+
+pip install selenium
+
+from selenium import webdriver
+driver = webdriver.Chrome()
+driver.get('https://www.medium.com')
+H = driver.execute_script("return document.body.scrollHeight")
+W = driver.execute_script("return document.body.scrollWidth")
+driver.set_window_size(W, H)
+driver.find_element_by_tag_name('body')
+driver.screenshot('screenshot.png')
+
+---------------------------------------------------------------------------------
+
+# Send Phone SMS
+
+pip install requests
+import requests
+url = "https://api.mailjet.com/v4/sms-send"
+headers = {
+    'Authorization': "Bearer $API_KEY",
+    'Content-Type': "application/json",
+}
+payload = {
+    "Text": "Have a nice SMS from Medium :) ",
+    "To": "+xxxxxxxxxx",
+}
+response = requests.post(url, headers=headers, data=payload)
+print(response.status_code)
+
+------------------------------------------------------------------------------
+
+# Modern GUI with Python 
+
+pip install tkinter
+
+import tkinter as tk
+from tkinter import filedialog
+
+r = tk.Tk()
+
+# set title 
+r.title("Medium GUI")
+
+# set size
+r.geometry("400x400")
+
+# Create a label
+label = tk.Label(r, text="Hello World")
+label.place(x=10, y=10)
+
+# Create a Inputbox
+value = tk.StringVar()
+inputbox = tk.Entry(r, textvariable=value)
+inputbox.place(x=10, y=50)
+
+# Create a Button
+button = tk.Button(r, text="Click Me")
+button.place(x=10, y=100)
+
+# Checkboxes
+opt1 = tk.IntVar()
+check = tk.Checkbutton(r, text="Check Me", variable=opt1)
+check.place(x=10, y=150)
+
+# Import Image
+img = tk.PhotoImage(file="image.png")
+image = tk.Label(r, image=img)
+image.place(x=10, y=200)
+
+# File Dialog
+filedialog.askopenfilename(parent= r)
+
+# run the app
+r.mainloop()
+
+--------------------------------------------------------------------------------------
+
+# Run CMD Commands
+
+import subprocess
+
+# Run python script from cmd 
+subprocess.call(['python', 'test.py'])
+
+# Run Command with Arguments
+subprocess.call(['python', 'test.py', 'arg1', 'arg2'])
+
+# Run command and get output
+output = subprocess.Popen(['python', 'test.py'], stdout=subprocess.PIPE).communicate()[0]
+print(output)
+
+# Run command as admin
+subprocess.call(['runas', '/user:Administrator', 'python', 'test.py'])
