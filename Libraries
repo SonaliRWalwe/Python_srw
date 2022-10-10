@@ -1,0 +1,91 @@
+#  Wget is a free module for downloading non-interactive online files, particularly data extraction from websites.
+pip install wget
+
+--------------------------------------------------------------
+
+# The pendulum is a beautiful project if you need to use dates and timings in python projects. 
+pip install pendulum
+
+import pendulum
+# Getting current UTC time
+utc_time = pendulum.now('UTC')
+
+--------------------------------------------------------------
+
+#unbalanced learning
+
+pip install -U imbalanced-learn
+# or
+conda install -c conda-forge imbalanced-learn
+
+-------------------------------------------------------------
+
+# Flashtext 
+# In most NLP tasks, substituting words in sentences or removing words from phrases is text data cleaning.
+
+pip install flashtext
+
+-------------------------------------------------------------
+
+# Fuzzywuzzy and Polyfuzz
+# Fuzzywuzzy is a handy library for character matching. It can rapidly implement operations like string matching and token matching. 
+# It can also readily match entries from several databases.
+# Polyfuzz uses transformers, Glove, FastText, and Embeddings to do an efficient match.
+
+pip install fuzzywuzzy
+pip install polyfuzz
+from polyfuzz.models import TFIDF
+from polyfuzz import PolyFuzz
+tfidf = TFIDF(n_gram_range=(3, 3))
+model = PolyFuzz(tfidf)
+model.match(from_list, to_list)
+
+------------------------------------------------------------
+
+# Pyflux designed to deal with time series challenges. 
+The module contains several good current time series models, including the Arima, GARCH, and VaR models. 
+Finally, flux offers an effective way for time series modelling.
+
+pip install pyflux
+
+------------------------------------------------------------
+
+# Ipyvolume 
+#or viewing 3D visuals in Jupyter notebooks
+
+pip install ipyvolume
+# or 
+conda install -c conda-forge ipyvolume
+
+import ipyvolume as ipv
+import numpy as np
+x, y, z, u, v, w = np.random.random((6, 1000))*2-1
+ipv.quickquiver(x, y, z, u, v, w, size=5)
+
+-------------------------------------------------------------
+
+# Dash for visulizations
+pip install dash==0.29.0 # This will install the core dash backend
+pip install dash-html-components==0.13.2 # This command will install HTML components
+pip install dash-core-components==0.36.0 # Supercharged components
+pip install dash-table==3.1.3 # Interactive DataTable component
+
+# Bashplotlib
+pip install bashplotlib
+
+import numpy as np
+from bashplotlib.histogram import plot_hist
+rand_nums = np.random.normal(size=700, loc=0, scale=1)
+plot_hist(rand_nums, bincount=100)
+
+# Colorama
+pip install colorama
+
+from colorama import init, Fore, Back
+init()
+# Fore changes the text's foreground color
+print(Fore.BLUE + "These are Blue Letters")
+#Back changes the text's background color
+print(Back.WHITE + "This is White Background")
+
+
