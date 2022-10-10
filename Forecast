@@ -1,0 +1,84 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+------------------------------------------------------------------------------------------------------------------
+# for ETL 
+import great_expectations as ge
+import json
+import pipeline
+------------------------------------------------------------------------------------------------------------------
+# Statsforecast provides a collection of univariate time-series Forecasting models. 
+# What is unique about StatsForecast is the model provides fast training and is optimized for high-accuracy models.
+# Also, the package offers several benchmarks we could use when training various models.
+pip install statsforecast
+
+from statsforecast.utils import generate_series
+synthetic_panel = generate_series(n_series=1, freq = 'M')
+synthetic_panel.head()
+Y_train_df = synthetic_panel[:-6]
+Y_test_df = synthetic_panel[-6:]
+from statsforecast import StatsForecast
+from statsforecast.models import AutoARIMA, ETS
+season_length = 12
+horizon = len(Y_test_df)
+models = [
+AutoARIMA(season_length=season_length),
+ETS(season_length=season_length, model='ZMZ')
+]
+model = StatsForecast(df=Y_train_df, models=models, freq='M', n_jobs=-1)
+%time
+Y_hat_df = model.forecast(horizon).reset_index()
+Y_hat_df.head()
+fig, ax = plt.subplots(1, 1, figsize = (20, 7))
+Y_hat_df = Y_test_df.merge(Y_hat_df, how='left', on=['unique_id', 'ds'])
+plot_df = pd.concat([Y_train_df, Y_hat_df]).set_index('ds')
+plot_df[['y', 'AutoARIMA', 'ETS']].plot(ax=ax, linewidth=2)
+ax.set_title('Forecast Synthetic Data', fontsize=22)
+ax.set_ylabel('Number', fontsize=20)
+ax.set_xlabel('Timestamp [t]', fontsize=20)
+ax.legend(prop={'size': 15})
+ax.grid()
+
+### https://nixtla.github.io/statsforecast/models.html
+------------------------------------------------------------------------------------------------------
+
+# PyAF or Python Automatic Forecasting is an open-source Python package to automatically develop time-series forecasting models 
+#(either univariate or with exogenous data). The model was built on top of Scikit-Learn and Pandas, so expect familiar APIs. 
+#The package also offers various models to use in a few lines as much as possible.
+
+pip install pyaf
+horizon = len(Y_test_df)
+import pyaf.ForecastEngine as autof
+#set up the model engine
+lEngine = autof.cForecastEngine()
+# get the best time series model for test prediction
+lEngine.train(iInputDS = Y_train_df, iTime = 'ds', iSignal = 'y', iHorizon = horizon)
+forecast_df= lEngine.forecast(Y_train_df, horizon)
+forecast_df.plot.line('ds', ['y' , 'y_Forecast','y_Forecast_Lower_Bound', 'y_Forecast_Upper_Bound'], grid = True, figsize=(12, 8))
+----------------------------------------------------------------------------------------------------------------------------------
+# NeuralProphet is a Python Package for developing a time-series model based on Facebook Prophet but with Neural Network architecture. 
+#The package is based on PyTorch and could easily be used with as few lines as possible.
+
+pip install neuralprophet
+pip install neuralprophet[live]
+train = Y_train_df.reset_index(drop = True)
+test = Y_test_df.reset_index(drop = True)
+from neuralprophet import NeuralProphet
+m = NeuralProphet()
+metrics = m.fit(train, freq='M', validation_df=Y_test_df, progress='plot')
+
+metrics.tail(1)
+
+forecast = m.predict(train)
+fig = m.plot(forecast)
+
+forecast = m.predict(test)
+m = m.highlight_nth_step_ahead_of_each_forecast(1)
+fig = m.plot(forecast)
+
+fig_param = m.plot_parameters()
+
+
+
+
+
