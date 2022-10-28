@@ -88,4 +88,6 @@ print(Fore.BLUE + "These are Blue Letters")
 #Back changes the text's background color
 print(Back.WHITE + "This is White Background")
 
+-----------------------------------------------------------------------
+
 
