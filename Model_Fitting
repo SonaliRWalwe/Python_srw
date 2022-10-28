@@ -1,0 +1,158 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report
+from sklearn.preprocessing import MinMaxScaler
+from sklearn import svm, datasets
+from sklearn.model_selection import GridSearchCV
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.neighbors import KNeighborsClassifier
+
+---------------------------------------------------------------------------
+
+
+pd.set_option("display.max_columns",5000)
+
+data = pd.read_csv("csvpath/mobile_price_range_data.csv")
+
+data
+
+data.describe()
+
+## Null value check 
+data.isnull().sum()
+
+## Splitting the Dataset 
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.2,random_state=108,stratify=y)
+
+##
+x,y = data.drop("price_range",axis=1), data["price_range"]
+d = {0:"Low Cost",1:"Medium Cost",2:"High Cost",3:"Very High Cost"}
+
+
+## Logistic Regression 
+scaler = MinMaxScaler(feature_range=(-1,1)).fit(x_train)
+
+x_train_scaler = scaler.transform(x_train)
+x_test_scaler = scaler.transform(x_test)
+
+reg = LogisticRegression()
+
+reg.fit(x_train_scaler,y_train)
+
+reg.score(x_train_scaler,y_train)
+
+y_pred_reg = reg.predict(x_test_scaler)
+
+y_pred_reg
+
+conf_reg = ConfusionMatrixDisplay.from_predictions(y_test,y_pred_reg, cmap="Reds")
+fig = conf_reg.ax_.get_figure()
+fig.set_figwidth(10)
+fig.set_figheight(10)
+
+print(classification_report(y_test,y_pred_reg, target_names=[d[i] for i in reg.classes_]))
+
+##KNN Classification Model
+#Using KNeighborsClassifier
+#Hyperparameter Tuning
+
+params_knn = {"n_neighbors":range(1,51), "weights":["uniform","distance"]}
+
+grid_search_knn = GridSearchCV(estimator = KNeighborsClassifier(), param_grid = params_knn, scoring = "accuracy")
+
+grid_search_knn.fit(x_train,y_train)
+
+grid_search_knn.best_params_
+
+grid_search_knn.best_score_
+
+grid_search_knn.best_score_
+
+y_pred_clf_knn = knn.predict(x_test)
+
+conf_clf_knn = ConfusionMatrixDisplay.from_predictions(y_test,y_pred_clf_knn, cmap="Blues")
+fig = conf_clf_knn.ax_.get_figure()
+fig.set_figwidth(10)
+fig.set_figheight(10)
+
+print(classification_report(y_test,y_pred_clf_knn, target_names=[d[i] for i in knn.classes_]))
+
+#Using KNeighborsRegressor
+reg_knn = KNeighborsRegressor(n_neighbors=1)
+reg_knn.fit(x_train,y_train)
+
+neighbors = reg_knn.kneighbors(x_test)
+y_pred_knn = reg_knn.predict(x_test)
+
+conf_knn = ConfusionMatrixDisplay.from_predictions(y_test,y_pred_knn, cmap="Greens")
+fig = conf_knn.ax_.get_figure()
+fig.set_figwidth(10)
+fig.set_figheight(10)
+
+print(classification_report(y_test,y_pred_knn, target_names=[d[i] for i in [0,1,2,3]]))
+
+##SVM Classification Model
+scaling = MinMaxScaler(feature_range=(-1,1)).fit(x_train)
+x_train_scaled = scaling.transform(x_train)
+x_test_scaled = scaling.transform(x_test)
+
+## Hyperparameter Tuning
+parameters = {"C":range(1,10),"kernel":["linear","rbf"]}
+grid_search = GridSearchCV(estimator = svm.SVC(), param_grid = parameters, scoring = "accuracy")
+grid_search.fit(x_train_scaled,y_train)
+grid_search.best_params_
+svc = grid_search.best_estimator_
+y_pred_svm = svc.predict(x_test_scaled)
+conf_svm = ConfusionMatrixDisplay.from_predictions(y_test,y_pred_svm, labels=svc.classes_, cmap="Oranges")
+fig = conf_svm.ax_.get_figure()
+fig.set_figwidth(10)
+fig.set_figheight(10)
+
+print(classification_report(y_test,y_pred_svm, target_names=[d[i] for i in svc.classes_]))
+
+
+###Decision Tree Model
+params_decision = {"criterion":["gini","entropy"], "ccp_alpha":[0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001]}
+grid_dec = GridSearchCV(estimator=DecisionTreeClassifier(), param_grid=params_decision, scoring="accuracy")
+
+grid_dec.fit(x_train,y_train)
+grid_dec.best_params_
+clf = grid_dec.best_estimator_
+clf=clf.fit(x_train,y_train)
+preds = clf.predict(x_test)
+
+plt.figure(figsize=(16,12))
+plot_tree(clf, filled = True, feature_names=x_train.columns, class_names = [d[i] for i in clf.classes_]) plt.show()
+
+conf = ConfusionMatrixDisplay.from_predictions(y_test,preds, labels=clf.classes_, cmap="Purples")
+fig = conf.ax_.get_figure()
+fig.set_figwidth(10)
+fig.set_figheight(10)
+
+print(classification_report(y_test,preds, target_names=[d[i] for i in clf.classes_]))
+
+###Random Forest Model
+params_rand = {"n_estimators":[100,200,300,400,500], "criterion":["entropy","gini"], "ccp_alpha":[0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001]}
+grid_rand = GridSearchCV(estimator=RandomForestClassifier(random_state=108), param_grid = params_rand, scoring = "accuracy")
+grid_rand.fit(x_train,y_train)
+grid_rand.best_params_
+grid_rand.best_score_
+clf_2 = grid_rand.best_estimator_
+y_preds = clf_2.predict(x_test)
+conf_2 = ConfusionMatrixDisplay.from_predictions(y_test,y_preds, labels=clf_2.classes_, cmap="Greys")
+fig = conf_2.ax_.get_figure()
+fig.set_figwidth(10)
+fig.set_figheight(10)
+
+print(classification_report(y_test,y_preds, target_names=[d[i] for i in clf_2.classes_]))
+
+
+
+
+
