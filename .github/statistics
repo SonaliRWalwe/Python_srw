@@ -1,0 +1,140 @@
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+# Load the sales data into a Pandas DataFrame
+sales_data = pd.read_csv('sales_data.csv', header=None, names=['Year', 'Sales'])
+
+# Calculate the average sales revenue for the past five years
+avg_sales = np.mean(sales_data['Sales'][-5:])
+
+# Fit a linear regression model to the sales data
+X = sales_data['Year'].values.reshape(-1, 1)
+y = sales_data['Sales'].values.reshape(-1, 1)
+model = LinearRegression()
+model.fit(X, y)
+
+# Make a forecast for the next three years
+X_pred = np.array([2022, 2023, 2024]).reshape(-1, 1)
+y_pred = model.predict(X_pred)
+
+# Print the results
+print('Average sales revenue for the past five years:', avg_sales)
+print('Forecast for the next three years:', y_pred.flatten())
+
+# Output 
+Average sales revenue for the past five years: 1500000.0
+Forecast for the next three years: [1664000.  1828000.  1992000. ]
+
+
+
+import pandas as pd
+
+# Load the survey data into a Pandas DataFrame
+survey_data = pd.read_csv('survey_data.csv')
+
+# Group the survey data by major and count the number of responses for each major
+major_counts = survey_data.groupby('major').size().reset_index(name='counts')
+
+# Find the major with the highest number of responses
+most_popular_major = major_counts.loc[major_counts['counts'].idxmax()]['major']
+
+# Filter the survey data to only include responses from the most popular major
+most_popular_major_data = survey_data[survey_data['major'] == most_popular_major]
+
+# Count the number of responses for each reason why the most popular major was chosen
+reason_counts = most_popular_major_data['reasons'].value_counts().reset_index(name='counts')
+
+# Print the results
+print('Most popular major:', most_popular_major)
+print('Reasons for choosing the most popular major:')
+for index, row in reason_counts.iterrows():
+    print(row['index'], ':', row['counts'])
+-------------------------------------------------------------------------------------------------
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the sales data into a Pandas DataFrame
+sales_data = pd.read_csv('sales_data.csv')
+
+# Extract the sales data before and after the campaign
+before_campaign_sales = sales_data[sales_data['date'] < '2022-03-01']['sales']
+after_campaign_sales = sales_data[sales_data['date'] >= '2022-03-01']['sales']
+
+# Visualize the sales data before and after the campaign
+plt.hist(before_campaign_sales, bins=20, alpha=0.5, label='Before campaign')
+plt.hist(after_campaign_sales, bins=20, alpha=0.5, label='After campaign')
+plt.legend(loc='upper right')
+plt.title('Sales before and after marketing campaign')
+plt.show()
+--------------------------------------------------------------------------------------
+
+from scipy.stats import ttest_ind
+
+# Perform a two-sample t-test to compare the sales before and after the campaign
+t_stat, p_value = ttest_ind(before_campaign_sales, after_campaign_sales, equal_var=False)
+
+# Print the results of the t-test
+print('t-statistic:', t_stat)
+print('p-value:', p_value)
+if p_value < 0.05:
+    print('The difference in sales before and after the campaign is statistically significant.')
+else:
+    print('The difference in sales before and after the campaign is not statistically significant.')
+
+
+---------------------------------------------------------------------------------------------
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+
+# Load the data into a pandas dataframe
+data = pd.read_csv('employee_data.csv')
+
+# Define the variables
+variables = ['age', 'gender', 'job_satisfaction', 'salary', 'tenure']
+
+# Data preparation
+data = data.dropna() # Remove rows with missing values
+data[variables] = data[variables].apply(pd.to_numeric) # Convert variables to numeric
+
+# Descriptive statistics
+print(data[variables].describe())
+
+# Correlation analysis
+correlation = data[variables + ['turnover']].corr()
+print(correlation['turnover'])
+
+# Hypothesis testing
+job_satisfaction_turnover = data[data['turnover']==1]['job_satisfaction']
+job_satisfaction_no_turnover = data[data['turnover']==0]['job_satisfaction']
+t_test = sm.stats.ttest_ind(job_satisfaction_turnover, job_satisfaction_no_turnover)
+print(t_test)
+# Ttest_indResult(statistic=-6.872, pvalue=9.369e-12)
+
+# Regression analysis
+X = data[variables]
+y = data['turnover']
+X = sm.add_constant(X)
+model = sm.Logit(y, X).fit()
+print(model.summary())
+
+-------------------------------------------------------------------------------------
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+
+# Load data
+data = pd.read_csv('social_media_data.csv')
+
+# Correlation analysis
+corr = data.corr()
+print(corr)
+
+# Multiple regression analysis
+X = data[['followers', 'engagement', 'mentions']]
+Y = data['sales']
+X = sm.add_constant(X)
+model = sm.OLS(Y, X).fit()
+print(model.summary())
