@@ -1,0 +1,147 @@
+#Analyzing Customer Lifetime Value (CLV) and Churn
+
+
+import pandas as pd
+import numpy as np
+from lifetimes import BetaGeoFitter, GammaGammaFitter
+from lifetimes.utils import summary_data_from_transaction_data
+from lifetimes.plotting import plot_period_transactions
+from lifetimes.datasets import load_dataset
+from sklearn.preprocessing import KBinsDiscretizer
+from sklearn.metrics import mean_squared_error, confusion_matrix, mean_absolute_error, f1_score, r2_score
+from math import sqrt
+from datetime import date, timedelta
+import seaborn as sns
+import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings('ignore')
+%matplotlib inline
+
+
+df = load_dataset(filename= 'CDNOW_sample.txt' , 
+    #header=None,
+     delim_whitespace= True , 
+    names=[ 'client_id' , 'client_index' , 'date' , 'quantity' , 'price' ], 
+    converters={ 'data ' : lambda x: pd.to_datetime(x, format = "%Y-%m-%d" )} #Conversion of date field to date type
+ )
+
+#Creating a Total Value variable
+ df[ "value" ] = df[ "price" ]*df[ "quantity" ]
+
+# We select the values ​​that we will use in the data set. 
+df = df[[ 'client_id' , 'date' , 'value' ]]
+
+# Descriptive statistics
+ df.describe()
+
+#Analysis of the number of null values ​​per field in the dataset
+ df.isnull(). sum ()
+
+rfm = summary_data_from_transaction_data(df, 'client_id' , 'data' , 'value' ) 
+rfm = rfm[~rfm.isna()] #If there is any null value, they would be removed.
+
+
+
+### Creating the Model
+With the RFM matrix created, we can continue the code to predict the number of purchases that will be made by consumers and the probability that they will become Churn:
+
+#Removal of frequencies and reset monetary values
+ ​​rfm = rfm[(rfm[ 'frequency' ] > 0 ) & (rfm[ 'monetary_value' ] > 0 )]
+
+#Creation and training of the BG\NBD model. 
+bgf = BetaGeoFitter(penalizer_coef= 0.0 ) 
+bgf.fit(rfm[ 'frequency' ], rfm[ 'recency' ], rfm[ 'T' ])
+
+#Forecast of the amount of purchases for the next 90 days. 
+t = 90 #Forecast  for the next 90 days
+ rfm[ 'predicao_' + str (t)+ '_dias' ] = bgf.conditional_expected_number_of_purchases_up_to_time(t,rfm[ 'frequency' ], rfm[ 'recency' ],rfm[ 'T' ])
+
+
+#Creation of Retention and Churn columns
+rfm['Retention'] = bgf.conditional_probability_alive(rfm['frequency'], rfm['recency'], rfm['T'])
+rfm['Churn'] = 1-bgf.conditional_probability_alive(rfm['frequency'], rfm['recency'], rfm['T'])
+
+
+#Analysis of correlation between frequency and monetary value fields, which needs to be low
+ rfm[[ 'frequency' , 'monetary_value' ]].corr()
+
+#Creation and training of the GAMMA GAMMA model. 
+ggf = GammaGammaFitter(penalizer_coef = 0.0 ) 
+ggf.fit(rfm[ 'frequency' ], rfm[ 'monetary_value' ])
+
+preds_total = ggf.customer_lifetime_value( 
+    bgf, 
+    rfm[ 'frequency' ], 
+    rfm[ 'recency' ], 
+    rfm[ 'T' ], 
+    rfm[ 'monetary_value' ], 
+    time = 3 , #CLV forecast for the last 3 months.
+     freq = 'D' , 
+    discount_rate = 0.01  #discount of the company's cash flow. This information can be obtained from the company you will provide services to.
+ ) 
+rfm[ 'clv' ] = preds_total
+
+rfm[ 'segmentacao_clv' ] = pd.qcut(rfm[ 'clv' ], q= 5 , labels=[ ' Low' , 'Low' , 'Medium' , 'High' , 'Top' ]) #Customer segmentation into 5 
+#groups of equal amount of values
+
+
+### Model Validation
+# First, we define the prediction of the model. 
+# The actual number of transactions in the observed period, needs to be added by 1.
+ actual_values ​​= rfm[ "frequency" ] #+ 1
+# Dataset
+ time time = (df.data. max ()-df.data. min ()) .days 
+# Predict the number of transactions from the observed time of the dataset. 
+predicted_values ​​= bgf.predict(t=time, frequency=rfm[ 'frequency' ], recency=rfm[ 'recency' ], T=rfm[ 'T' ]) 
+actual_values ​​= actual_values.fillna( 0 ) 
+predicted_values ​​= predicted_values.fillna ( 0 )
+RMSE = mean_squared_error(y_true = true_values, y_pred = predicted_values, squared = False ) 
+print (RMSE)
+
+def  validate_clv ( current, predicted, bins ): 
+    print ( f"Mean absolute error: {mean_absolute_error(current, predicted)} " ) 
+    #Evaluate numeric
+     plt.figure(figsize=( 10 , 7 )) 
+    plt.scatter(predicted, current ) 
+    plt.xlabel( 'Predicted' ) 
+    plt.ylabel( 'Current' ) 
+    plt.title( 'Predicted vs Current' ) 
+    plt.show() 
+    
+    #Evaluate Bins
+     est = KBinsDiscretizer(n_bins=bins, encode= 'ordinal' , strategy= 'kmeans' )
+    est.fit(np.array(current).reshape(- 1 , 1 )) 
+    bin_actual = est.transform(np.array(current).reshape(- 1 , 1 )).ravel() 
+    bin_predicted = est.transform( np.array(predicted).reshape(- 1 , 1 )).ravel() 
+    
+    cm = confusion_matrix(current_bin, predicted_bin, normalize= 'true' ) 
+    df_cm = pd.DataFrame(cm, index = range ( 1 , bins+ 1 ) , 
+                      columns = range ( 1 , bins+ 1 )) 
+    plt.figure(figsize = ( 20 , 10)) 
+    sns.heatmap(df_cm, annot= True ) 
+
+ # View
+     b, t = plt.ylim() # find out the values ​​for the bottom and top
+     b += 0.5  # Add 0.5 to the bottom
+     t -= 0.5  # Subtract 0.5 from the top
+     plt.ylim(b, t) # update the ylim(bottom, top) values
+     ​​plt.show() 
+    print ( f'F1 score: {f1_score(current_bin, predicted_bin, average= "macro" )} ' ) 
+    print ( 'Sample in each bin: \n' ) 
+    print (pd.Series(current_bin).sort_values().value_counts())
+validate_clv(actual_values, predicted_values, bins= 7 )
+
+-----------------Mean absolute error: 1.5997010769132896-----------------------------
+
+plot_period_transactions(bgf, max_frequency= 10 , title= 'Repeating Transaction Frequency' , 
+    xlabel= 'Number of transactions in calibration period' , 
+    ylabel= 'Customers' , label=([ "Current" , "Predicted" ]))
+predicao_valor_monetario = ggf.conditional_expected_average_profit(
+        rfm['frequency'],
+        rfm['monetary_value']
+)
+
+fig, ax = plt.subplots(figsize=(10,5))
+sns.distplot(predicao_valor_monetario,ax=ax)
+sns.distplot(rfm['monetary_value'],ax=ax)
+
